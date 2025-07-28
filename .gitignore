@@ -1,4 +1,8 @@
-/debug_log.txt
-/debug_response_173242.json
-/debug_response_173244.json
-/debug_response_173246.json
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
