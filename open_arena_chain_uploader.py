@@ -643,15 +643,31 @@ def main():
         print("⚠️ TR_BEARER_TOKEN environment variable not found")
         print("\nYou can either:")
         print("1. Set up a .env file with TR_BEARER_TOKEN=your_token_here")
-        print("2. Enter your bearer token now (input will be hidden)")
+        print("2. Enter your bearer token now (input will show as ****)")
         print()
         
-        try:
-            import getpass
-            bearer_token = getpass.getpass("Enter your Bearer Token: ").strip()
-        except ImportError:
-            # Fallback if getpass is not available
-            bearer_token = input("Enter your Bearer Token: ").strip()
+        # Custom input function that shows asterisks
+        import msvcrt
+        
+        def get_password_with_asterisks(prompt):
+            """Get password input showing asterisks"""
+            print(prompt, end='', flush=True)
+            password = ""
+            while True:
+                char = msvcrt.getch()
+                if char == b'\r':  # Enter key
+                    print()  # New line
+                    break
+                elif char == b'\x08':  # Backspace
+                    if len(password) > 0:
+                        password = password[:-1]
+                        print('\b \b', end='', flush=True)  # Remove last asterisk
+                else:
+                    password += char.decode('utf-8')
+                    print('*', end='', flush=True)
+            return password
+        
+        bearer_token = get_password_with_asterisks("Enter your Bearer Token: ").strip()
         
         if not bearer_token:
             print("❌ No bearer token provided. Cannot continue.")
