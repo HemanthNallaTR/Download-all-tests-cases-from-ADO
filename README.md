@@ -1,10 +1,117 @@
-# Azure DevOps Test Case Downloader
+# Azure DevOps Test Case Downloader & Open Arena Chain Uploader
 
-A Python framework to download test cases from Azure DevOps and export them to Excel format. This tool directly uses Azure DevOps REST APIs to fetch test case data without requiring additional dependencies like MCP.
+A comprehensive Python framework to download test cases from Azure DevOps and upload them to Open Arena Chain Data Analytics platform. This tool uses Azure DevOps REST APIs directly to fetch test case data and provides optimized upload capabilities to Open Arena Chain.
 
-# Azure DevOps Test Case Downloader
+## 🚀 Two Main Components
 
-A comprehensive Python framework to download test cases from Azure DevOps and export them to Excel format. This tool uses Azure DevOps REST APIs directly to fetch test case data with enhanced features for different output modes.
+### 1. **Azure DevOps Test Case Downloader**
+
+Downloads test cases from Azure DevOps and exports them to Excel format.
+
+### 2. **Open Arena Chain Uploader** ⭐ NEW!
+
+Uploads Excel files to Open Arena Chain Data Analytics platform with optimized strategy to prevent S3 errors and minimize deployments.
+
+---
+
+## 📤 Open Arena Chain Uploader
+
+### **Quick Start**
+
+```bash
+# Upload all test case files with optimized strategy
+python open_arena_chain_uploader.py
+```
+
+### **Key Features**
+
+- ✅ **Optimized Individual Uploads** - Fresh S3 URLs for each file (prevents HTTP 403 errors)
+- ✅ **Single Workflow Save** - Only 1 deployment instead of 56 separate deployments
+- ✅ **Automatic File Discovery** - Finds all Excel files in `test_cases_by_suite/` folder
+- ✅ **Bearer Token Authentication** - Secure authentication with visual feedback
+- ✅ **Progress Tracking** - Real-time upload progress and comprehensive summaries
+- ✅ **Error Recovery** - Continues processing even if individual files fail
+- ✅ **File Management** - Options to delete existing files before upload
+
+### **Setup Instructions**
+
+1. **Configure your credentials** by editing the `.env` file:
+
+```env
+TR_BEARER_TOKEN=your_bearer_token_here
+TR_WORKSPACE_ID=your_workspace_id_here  # Optional
+```
+
+2. **Ensure test case files are available**:
+
+   - Run the Azure DevOps downloader first to generate Excel files
+   - Files should be in the `test_cases_by_suite/` directory
+3. **Run the uploader**:
+
+```bash
+python open_arena_chain_uploader.py
+```
+
+### **Usage Workflow**
+
+```
+🚀 Open Arena Chain - Optimized File Uploader
+============================================================
+
+⚠️ TR_BEARER_TOKEN environment variable not found
+
+You can either:
+1. Set up a .env file with TR_BEARER_TOKEN=your_token_here
+2. Enter your bearer token now (input will show as ****)
+
+Enter your Bearer Token: ****************
+✅ Bearer token entered successfully
+
+📡 Testing authentication...
+✅ Authentication successful
+
+📁 Found 56 Excel files in test_cases_by_suite
+
+🗑️ Checking existing workspace files...
+✅ No existing files found in workspace
+
+What files would you like to upload?
+1. Upload all Excel files
+2. Select specific files
+3. Cancel upload
+
+Enter your choice (number): 1
+
+📤 Selected 56 files for upload
+
+🚀 Starting optimized upload of 56 files...
+
+Proceed with optimized upload (fresh S3 URLs + single save)? (y/n): y
+
+🚀 Using OPTIMIZED individual upload strategy...
+💡 This prevents S3 URL expiration AND minimizes deployments!
+
+🚀 OPTIMIZED UPLOAD STRATEGY:
+   📤 Upload 56 files individually (fresh S3 URLs each time)
+   💾 Save workflow only ONCE at the end
+   🎯 Result: 1 deployment instead of 56 deployments!
+```
+
+### **Expected Results**
+
+```
+📊 OPTIMIZED UPLOAD SUMMARY:
+✅ Successful uploads: 56
+❌ Failed uploads: 0
+📁 Total files: 56
+🎯 Deployments triggered: 1 (saved 55 deployments!)
+
+🎉 All files uploaded successfully with optimized strategy!
+```
+
+---
+
+## 📥 Azure DevOps Test Case Downloader
 
 ## 🚀 Quick Start Options
 
