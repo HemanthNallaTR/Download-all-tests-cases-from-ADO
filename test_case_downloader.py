@@ -21,6 +21,7 @@ from dotenv import load_dotenv
 import sys
 from pathlib import Path
 import html
+from datetime import datetime
 
 from config import (
     PLAN_ID, SUITE_ID_START, SUITE_ID_END, EXPORT_FILENAME,
@@ -46,6 +47,7 @@ class TestCaseDownloader:
         self.test_cases_data = []
         self.suite_data = {}  # Dictionary to store data by suite
         self.total_test_cases = 0
+        self.last_export_filename = None  # Track the last exported filename
         
     def setup_logging(self):
         """Setup logging configuration"""
@@ -375,6 +377,74 @@ class TestCaseDownloader:
         self.logger.info(f"  - Failed suites: {failed_suites}")
         self.logger.info(f"  - Total suites processed: {SUITE_ID_END - SUITE_ID_START + 1}")
     
+    def cleanup_old_files(self, output_dir: Path):
+        """Clean up old test case files before creating new ones"""
+        try:
+            # Find all existing Excel files in the output directory
+            existing_files = []
+            for pattern in ['*.xlsx', '*.xls']:
+                existing_files.extend(output_dir.glob(pattern))
+            
+            if existing_files:
+                self.logger.info(f"🗑️ Cleaning up {len(existing_files)} old test case files...")
+                deleted_count = 0
+                failed_count = 0
+                
+                for file_path in existing_files:
+                    try:
+                        file_path.unlink()  # Delete the file
+                        deleted_count += 1
+                        self.logger.debug(f"   - Deleted: {file_path.name}")
+                    except Exception as e:
+                        failed_count += 1
+                        self.logger.warning(f"   - Failed to delete {file_path.name}: {e}")
+                
+                self.logger.info(f"✅ Cleanup completed: {deleted_count} deleted, {failed_count} failed")
+            else:
+                self.logger.info("📁 No old files found - directory is clean")
+                
+        except Exception as e:
+            self.logger.warning(f"⚠️ Error during cleanup: {e}")
+            # Continue with export even if cleanup fails
+    
+    def cleanup_old_single_files(self):
+        """Clean up old single export files"""
+        try:
+            # Find files that match the single export pattern
+            current_dir = Path(".")
+            base_filename = Path(EXPORT_FILENAME).stem  # e.g., "test_cases_export"
+            
+            # Look for files like "test_cases_export_*.xlsx"
+            pattern = f"{base_filename}_*.xlsx"
+            existing_files = list(current_dir.glob(pattern))
+            
+            # Also look for the original filename without timestamp
+            original_file = current_dir / EXPORT_FILENAME
+            if original_file.exists():
+                existing_files.append(original_file)
+            
+            if existing_files:
+                self.logger.info(f"🗑️ Cleaning up {len(existing_files)} old single export files...")
+                deleted_count = 0
+                failed_count = 0
+                
+                for file_path in existing_files:
+                    try:
+                        file_path.unlink()  # Delete the file
+                        deleted_count += 1
+                        self.logger.debug(f"   - Deleted: {file_path.name}")
+                    except Exception as e:
+                        failed_count += 1
+                        self.logger.warning(f"   - Failed to delete {file_path.name}: {e}")
+                
+                self.logger.info(f"✅ Cleanup completed: {deleted_count} deleted, {failed_count} failed")
+            else:
+                self.logger.info("📁 No old single export files found")
+                
+        except Exception as e:
+            self.logger.warning(f"⚠️ Error during single file cleanup: {e}")
+            # Continue with export even if cleanup fails
+    
     def export_to_excel(self):
         """Export test cases data to Excel based on configuration"""
         if self.separate_files_per_suite:
@@ -392,6 +462,9 @@ class TestCaseDownloader:
             # Create output directory
             output_dir = Path("test_cases_by_suite")
             output_dir.mkdir(exist_ok=True)
+            
+            # Clean up old files before creating new ones
+            self.cleanup_old_files(output_dir)
             
             exported_files = []
             
@@ -421,8 +494,9 @@ class TestCaseDownloader:
                         df = df[column_order]
                         filename_suffix = "Full"
                     
-                    # Generate filename
-                    filename = f"TestCases_Plan{PLAN_ID}_Suite{suite_id}_{filename_suffix}.xlsx"
+                    # Generate filename with timestamp
+                    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = f"TestCases_Plan{PLAN_ID}_Suite{suite_id}_{filename_suffix}_{timestamp}.xlsx"
                     filepath = output_dir / filename
                     
                     # Export to Excel
@@ -513,7 +587,8 @@ class TestCaseDownloader:
                     filename_suffix = "Full"
                 
                 df = df.reindex(columns=column_order)
-                summary_file = output_dir / f"TestCases_Plan{PLAN_ID}_Summary_{filename_suffix}.xlsx"
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                summary_file = output_dir / f"TestCases_Plan{PLAN_ID}_Summary_{filename_suffix}_{timestamp}.xlsx"
                 
                 with pd.ExcelWriter(summary_file, engine='openpyxl') as writer:
                     df.to_excel(writer, sheet_name="All Test Cases", index=False)
@@ -561,6 +636,9 @@ class TestCaseDownloader:
             return
         
         try:
+            # Clean up old single export files
+            self.cleanup_old_single_files()
+            
             # Create DataFrame
             df = pd.DataFrame(self.test_cases_data)
             
@@ -583,8 +661,11 @@ class TestCaseDownloader:
                 
                 df = df[column_order]
             
-            # Export to Excel
-            export_path = Path(EXPORT_FILENAME)
+            # Export to Excel with timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            base_filename = Path(EXPORT_FILENAME).stem  # Get filename without extension
+            export_path = Path(f"{base_filename}_{timestamp}.xlsx")
+            self.last_export_filename = str(export_path)  # Store for reference
             
             with pd.ExcelWriter(export_path, engine='openpyxl') as writer:
                 df.to_excel(writer, sheet_name=SHEET_NAME, index=False)
@@ -723,7 +804,8 @@ def main():
             else:
                 print("📋 Files contain: All available test case fields")
         else:
-            print(f"📄 Check '{EXPORT_FILENAME}' for your test cases")
+            filename_to_show = downloader.last_export_filename if downloader.last_export_filename else EXPORT_FILENAME
+            print(f"📄 Check '{filename_to_show}' for your test cases")
         
     except Exception as e:
         print(f"❌ Error: {str(e)}")

@@ -18,10 +18,12 @@ python test_case_downloader.py --essential
 
 **Output**: Individual Excel files for each suite with 4 essential columns
 
-- `TestCases_Plan1410043_Suite1410044_Essential.xlsx`
-- `TestCases_Plan1410043_Suite1410045_Essential.xlsx`
+- `TestCases_Plan1410043_Suite1410044_Essential_YYYYMMDD_HHMMSS.xlsx`
+- `TestCases_Plan1410043_Suite1410045_Essential_YYYYMMDD_HHMMSS.xlsx`
 - ... (one file per suite)
-- `TestCases_Plan1410043_Summary_Essential.xlsx` (all combined)
+- `TestCases_Plan1410043_Summary_Essential_YYYYMMDD_HHMMSS.xlsx` (all combined)
+
+**🗑️ Automatic Cleanup**: Old test case files are automatically deleted before downloading new ones to keep your workspace clean.
 
 ### **Option 2: Full Details Mode**
 
@@ -33,10 +35,10 @@ python test_case_downloader.py --mode full
 
 **Output**: Individual Excel files for each suite with all available fields
 
-- `TestCases_Plan1410043_Suite1410044_Full.xlsx`
-- `TestCases_Plan1410043_Suite1410045_Full.xlsx`
+- `TestCases_Plan1410043_Suite1410044_Full_YYYYMMDD_HHMMSS.xlsx`
+- `TestCases_Plan1410043_Suite1410045_Full_YYYYMMDD_HHMMSS.xlsx`
 - ... (one file per suite)
-- `TestCases_Plan1410043_Summary_Full.xlsx` (all combined)
+- `TestCases_Plan1410043_Summary_Full_YYYYMMDD_HHMMSS.xlsx` (all combined)
 
 ## 📦 Full Setup (Excel Export)
 
