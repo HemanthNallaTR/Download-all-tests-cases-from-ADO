@@ -52,6 +52,11 @@ jobs:
   download-and-upload:
     runs-on: windows-latest
     
+    env:
+      # Set UTF-8 encoding for Unicode emoji support
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: 1
+    
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -96,6 +101,10 @@ jobs:
 
     - name: Validate configuration
       run: |
+        # Set UTF-8 encoding for Unicode emoji support
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        $env:PYTHONIOENCODING = "utf-8"
+        
         python validate_config.py
       env:
         AZURE_DEVOPS_ORG_URL: ${{ secrets.AZURE_DEVOPS_ORG_URL }}
@@ -107,6 +116,10 @@ jobs:
     - name: Download test cases (Essential Mode)
       if: ${{ github.event.inputs.mode == 'essential' || github.event.inputs.mode == '' }}
       run: |
+        # Set UTF-8 encoding for Unicode support
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        $env:PYTHONIOENCODING = "utf-8"
+        
         python test_case_downloader.py --essential --output separate
       env:
         AZURE_DEVOPS_ORG_URL: ${{ secrets.AZURE_DEVOPS_ORG_URL }}
@@ -116,6 +129,10 @@ jobs:
     - name: Download test cases (Full Mode)
       if: ${{ github.event.inputs.mode == 'full' }}
       run: |
+        # Set UTF-8 encoding for Unicode support
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        $env:PYTHONIOENCODING = "utf-8"
+        
         python test_case_downloader.py --full --output separate
       env:
         AZURE_DEVOPS_ORG_URL: ${{ secrets.AZURE_DEVOPS_ORG_URL }}
@@ -137,6 +154,10 @@ jobs:
     - name: Upload to Open Arena Chain
       if: ${{ github.event.inputs.upload_to_arena == 'true' || github.event.inputs.upload_to_arena == '' }}
       run: |
+        # Set UTF-8 encoding for Unicode support
+        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+        $env:PYTHONIOENCODING = "utf-8"
+        
         # Set upload parameters based on inputs
         $deleteExisting = '${{ github.event.inputs.delete_existing_files }}' -eq 'true'
         $timeout = '${{ github.event.inputs.upload_timeout }}'
