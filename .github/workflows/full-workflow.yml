@@ -38,9 +38,7 @@ on:
         required: false
         default: '300'
         type: string
-  schedule:
-    # Run every day at 9 AM UTC (can be modified or disabled)
-    - cron: '0 9 * * *'
+ 
   push:
     branches: [ main ]
     paths: 
