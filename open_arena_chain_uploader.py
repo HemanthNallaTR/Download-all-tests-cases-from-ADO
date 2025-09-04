@@ -797,16 +797,9 @@ def main():
     print(f"\n📤 Selected {len(files_to_upload)} files for upload")
     
     # Upload files using optimized strategy
-    print(f"\n� Starting optimized upload of {len(files_to_upload)} files...")
-    
-    # Confirm upload
-    choice = input(f"\nProceed with optimized upload (fresh S3 URLs + single save)? (y/n): ").strip().lower()
-    if choice != 'y':
-        print("Upload cancelled")
-        sys.exit(0)
-    
-    print("\n🚀 Using OPTIMIZED individual upload strategy...")
-    print(f"💡 This prevents S3 URL expiration AND minimizes deployments!")
+    print(f"\n🚀 Starting optimized upload of {len(files_to_upload)} files...")
+    print("� Using OPTIMIZED individual upload strategy (fresh S3 URLs + single save)...")
+    print("🎯 This prevents S3 URL expiration AND minimizes deployments!")
     
     success = uploader.upload_all_files_optimized(files_to_upload)
     
