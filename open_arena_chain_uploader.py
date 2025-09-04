@@ -600,13 +600,14 @@ def get_excel_files(directory: Path) -> List[Path]:
     
     return sorted(excel_files)
 
-def prompt_user_choice(question: str, options: List[str]) -> str:
+def prompt_user_choice(question: str, options: List[str], default: int = 1) -> str:
     """
-    Prompt user to choose from a list of options
+    Prompt user to choose from a list of options with default selection
     
     Args:
         question: Question to ask the user
         options: List of valid options
+        default: Default option number (1-based index)
         
     Returns:
         Selected option
@@ -614,14 +615,25 @@ def prompt_user_choice(question: str, options: List[str]) -> str:
     while True:
         print(f"\n{question}")
         for i, option in enumerate(options, 1):
-            print(f"{i}. {option}")
+            if i == default:
+                print(f"{i}. {option} (default)")
+            else:
+                print(f"{i}. {option}")
         
         try:
-            choice = input("\nEnter your choice (number): ").strip()
-            choice_idx = int(choice) - 1
+            choice = input(f"\nEnter your choice (number) [default: {default}]: ").strip()
+            
+            # If empty input, use default
+            if not choice:
+                choice_idx = default - 1
+            else:
+                choice_idx = int(choice) - 1
             
             if 0 <= choice_idx < len(options):
-                return options[choice_idx]
+                selected_option = options[choice_idx]
+                if not choice:  # Used default
+                    print(f"Using default option: {selected_option}")
+                return selected_option
             else:
                 print(f"Invalid choice. Please enter a number between 1 and {len(options)}")
                 
@@ -715,7 +727,7 @@ def main():
             "Cancel upload"
         ]
         
-        delete_choice = prompt_user_choice("How should we handle existing files?", delete_options)
+        delete_choice = prompt_user_choice("How should we handle existing files?", delete_options, default=1)
         
         if delete_choice == "Cancel upload":
             print("\nUpload cancelled by user.")
@@ -741,7 +753,7 @@ def main():
                     print(f"\n📊 Deletion summary: 0 deleted, {failed_count} failed")
                     
                     continue_options = ["Continue with upload", "Stop and report"]
-                    continue_choice = prompt_user_choice("Some deletions failed. What would you like to do?", continue_options)
+                    continue_choice = prompt_user_choice("Some deletions failed. What would you like to do?", continue_options, default=1)
                     
                     if continue_choice == "Stop and report":
                         print(f"\n❌ Upload stopped due to deletion failures.")
@@ -760,7 +772,7 @@ def main():
         "Cancel upload"
     ]
     
-    file_choice = prompt_user_choice("What files would you like to upload?", file_options)
+    file_choice = prompt_user_choice("What files would you like to upload?", file_options, default=1)
     
     if file_choice == "Cancel upload":
         print("\nUpload cancelled by user.")
