@@ -186,24 +186,18 @@ run_complete_workflow.bat
 
 ## ☁️ GitHub Actions (Cloud Automation)
 
+
 Run the workflow directly from GitHub without local setup:
-
-### **Available Modes**:
-
-1. **Essential Mode**: Download 4 essential columns only
-2. **Full Mode**: Download all available test case fields  
-3. **Complete Workflow**: Download + Upload to Open Arena Chain
 
 ### **How to Use**:
 
 1. Go to your repository on GitHub
 2. Click **Actions** → **Test Case Management Workflow** 
 3. Click **Run workflow**
-4. Choose your mode:
-   - `essential` or `full` = Download only
-   - `complete-workflow` = Download + Upload (requires TR Bearer Token)
-5. For upload modes, enter your **TR Bearer Token** in the input field
-6. Click **Run workflow**
+4. Enter your **TR Bearer Token** in the input field if upload is required
+5. Click **Run workflow**
+
+The workflow will automatically run all necessary steps for test case download and upload. No mode selection is required.
 
 ### **Repository Secrets Setup**:
 Add these secrets in your repository settings (Settings → Secrets and variables → Actions):
