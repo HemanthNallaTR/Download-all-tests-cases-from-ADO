@@ -120,7 +120,7 @@ Proceed with optimized upload (fresh S3 URLs + single save)? (y/n): y
 ```bash
 # Downloads only: Test Case ID, Title, Test Steps, Expected Results
 run_essential.bat
-python test_case_downloader.py --essential
+python test_case_downloader.py --mode essential
 ```
 
 **Output**: Individual Excel files for each suite with 4 essential columns

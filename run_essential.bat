@@ -31,7 +31,7 @@ echo - Output: Separate files per suite
 echo.
 
 echo Starting download...
-python test_case_downloader.py --essential --output separate
+python test_case_downloader.py --mode essential --output separate
 
 echo.
 echo ========================================
