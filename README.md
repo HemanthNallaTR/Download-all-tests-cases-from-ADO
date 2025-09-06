@@ -2,7 +2,28 @@
 
 A comprehensive Python framework to download test cases from Azure DevOps and upload them to Open Arena Chain Data Analytics platform. This tool uses Azure DevOps REST APIs directly to fetch test case data and provides optimized upload capabilities to Open Arena Chain.
 
-## 🚀 Two Main Components
+## �️ Quick Setup (First Time)
+
+**Before using any features, run the setup first:**
+
+### Windows (Recommended)
+```bash
+setup.bat
+```
+
+### Cross-Platform
+```bash
+python setup.py
+```
+
+The setup will:
+- ✅ Check Python version compatibility (3.7+)
+- ✅ Install all required dependencies automatically
+- ✅ Create `.env` configuration file from template
+- ✅ Test Azure DevOps connectivity
+- ✅ Verify test plan access permissions
+
+## �🚀 Two Main Components
 
 ### 1. **Azure DevOps Test Case Downloader**
 
@@ -146,6 +167,56 @@ python test_case_downloader.py --mode full
 - `TestCases_Plan1410043_Suite1410045_Full_YYYYMMDD_HHMMSS.xlsx`
 - ... (one file per suite)
 - `TestCases_Plan1410043_Summary_Full_YYYYMMDD_HHMMSS.xlsx` (all combined)
+
+### **Option 3: Complete Workflow (Download + Upload)** ⭐ NEW!
+
+```bash
+# Downloads essential columns AND uploads to Open Arena Chain automatically
+run_complete_workflow.bat
+```
+
+**What it does**:
+- ✅ Downloads test cases with essential columns (4 columns only)
+- ✅ Uses separate files per suite output format
+- ✅ Automatically uploads all files to Open Arena Chain
+- ✅ Only prompts for TR Bearer Token if not in `.env`
+- ✅ Uses defaults for all other options (no user prompts)
+
+**Perfect for**: Automated workflows where you want both download and upload with minimal interaction
+
+## ☁️ GitHub Actions (Cloud Automation)
+
+Run the workflow directly from GitHub without local setup:
+
+### **Available Modes**:
+
+1. **Essential Mode**: Download 4 essential columns only
+2. **Full Mode**: Download all available test case fields  
+3. **Complete Workflow**: Download + Upload to Open Arena Chain
+
+### **How to Use**:
+
+1. Go to your repository on GitHub
+2. Click **Actions** → **Test Case Management Workflow** 
+3. Click **Run workflow**
+4. Choose your mode:
+   - `essential` or `full` = Download only
+   - `complete-workflow` = Download + Upload (requires TR Bearer Token)
+5. For upload modes, enter your **TR Bearer Token** in the input field
+6. Click **Run workflow**
+
+### **Repository Secrets Setup**:
+Add these secrets in your repository settings (Settings → Secrets and variables → Actions):
+
+```
+AZURE_DEVOPS_ORG_URL=https://dev.azure.com/tr-corp-tax
+AZURE_DEVOPS_PAT=your_personal_access_token_here
+AZURE_DEVOPS_DEFAULT_PROJECT=OnesourceGCR
+TR_BEARER_TOKEN=your_bearer_token_here  # Optional, can be provided at runtime
+TR_WORKSPACE_ID=your_workspace_id_here
+```
+
+**Benefits**: No local Python setup required, runs in the cloud, automatic artifact storage
 
 ## 📦 Full Setup (Excel Export)
 

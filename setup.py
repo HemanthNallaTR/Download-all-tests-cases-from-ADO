@@ -8,7 +8,8 @@ import sys
 import requests
 import base64
 from pathlib import Path
-from dotenv import load_dotenv
+
+# Don't import dotenv at module level since it might not be installed yet
 
 
 def check_python_version():
@@ -18,6 +19,25 @@ def check_python_version():
         return False
     print(f"✅ Python version: {sys.version}")
     return True
+
+
+def check_required_packages():
+    """Check if required packages are installed"""
+    required_packages = ['requests', 'python-dotenv', 'openpyxl', 'pandas']
+    missing_packages = []
+    
+    for package in required_packages:
+        try:
+            __import__(package.replace('-', '_'))
+        except ImportError:
+            missing_packages.append(package)
+    
+    if missing_packages:
+        print(f"❌ Missing packages: {', '.join(missing_packages)}")
+        return False
+    else:
+        print("✅ All required packages are installed")
+        return True
 
 
 def install_dependencies():
@@ -103,7 +123,13 @@ def test_ado_connectivity():
     """Test connectivity to Azure DevOps"""
     print("\n🔐 Testing Azure DevOps connectivity...")
     
-    load_dotenv()
+    # Try to import and load dotenv - it should be installed by now
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        print("❌ python-dotenv not installed. Please run the dependency installation first.")
+        return False
     
     org_url = os.getenv('AZURE_DEVOPS_ORG_URL')
     pat = os.getenv('AZURE_DEVOPS_PAT')
@@ -162,7 +188,13 @@ def test_test_plan_access():
     """Test access to the specific test plan"""
     print("\n📋 Testing test plan access...")
     
-    load_dotenv()
+    # Try to import and load dotenv - it should be installed by now
+    try:
+        from dotenv import load_dotenv
+        load_dotenv()
+    except ImportError:
+        print("❌ python-dotenv not installed. Please run the dependency installation first.")
+        return False
     
     org_url = os.getenv('AZURE_DEVOPS_ORG_URL')
     pat = os.getenv('AZURE_DEVOPS_PAT')
@@ -228,38 +260,60 @@ def main():
         success = False
     
     # Install dependencies
-    if success and not install_dependencies():
-        success = False
+    if success:
+        # Check if dependencies are already installed
+        if check_required_packages():
+            print("✅ All dependencies already installed")
+        else:
+            print("📦 Installing missing dependencies...")
+            if not install_dependencies():
+                success = False
     
     # Create .env file
     if success and not create_env_file():
         success = False
     
-    # Test connectivity
-    if success and not test_ado_connectivity():
-        success = False
-        print("\n💡 To fix connectivity issues:")
-        print("   1. Make sure your PAT token has the required permissions:")
-        print("      - Test Plans (Read)")
-        print("      - Work Items (Read)")
-        print("   2. Check that your organization URL is correct")
-        print("   3. Verify the project name exists and you have access")
-    
-    # Test test plan access
-    if success and not test_test_plan_access():
-        success = False
-        print("\n💡 To fix test plan access issues:")
-        print("   1. Verify the PLAN_ID in config.py is correct")
-        print("   2. Make sure you have permissions to access test plans")
-        print("   3. Check that the test plan exists in the specified project")
+    # Only test connectivity if dependencies are installed and .env exists
+    if success:
+        # Double-check that dotenv is available before testing connectivity
+        try:
+            from dotenv import load_dotenv
+            # Test connectivity
+            if not test_ado_connectivity():
+                success = False
+                print("\n💡 To fix connectivity issues:")
+                print("   1. Make sure your PAT token has the required permissions:")
+                print("      - Test Plans (Read)")
+                print("      - Work Items (Read)")
+                print("   2. Check that your organization URL is correct")
+                print("   3. Verify the project name exists and you have access")
+            
+            # Test test plan access
+            elif not test_test_plan_access():
+                success = False
+                print("\n💡 To fix test plan access issues:")
+                print("   1. Verify the PLAN_ID in config.py is correct")
+                print("   2. Make sure you have permissions to access test plans")
+                print("   3. Check that the test plan exists in the specified project")
+        
+        except ImportError:
+            print("⚠️ Dependencies not fully installed. Skipping connectivity tests.")
+            print("   Please run this setup again after dependencies are installed.")
+            success = False
     
     print("\n" + "=" * 50)
     if success:
         print("🎉 Setup completed successfully!")
         print("\n🏃 You can now run the downloader:")
         print("   python test_case_downloader.py")
+        print("   or use the batch files:")
+        print("   - run_essential.bat (essential columns)")
+        print("   - run_full.bat (all columns)")
+        print("   - run_complete_workflow.bat (download + upload)")
     else:
         print("❌ Setup encountered issues. Please fix the errors above and try again.")
+        print("\n🔄 If dependencies failed to install, try:")
+        print("   pip install -r requirements.txt")
         sys.exit(1)
 
 

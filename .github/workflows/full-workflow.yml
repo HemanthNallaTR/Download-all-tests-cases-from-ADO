@@ -1,42 +1,11 @@
-name: Full Test Case Workflow
+name: Complete Test Case Workflow
 
 on:
   workflow_dispatch:
     inputs:
-      mode:
-        description: 'Choose export depth: [essential] = Only ID, Title, Steps, Expected Results (4 columns) | [full] = All available test case fields (10+ columns)'
-        required: true
-        default: 'essential'
-        type: choice
-        options:
-        - essential
-        - full
-      upload_to_arena:
-        description: 'After downloading from Azure DevOps: [true] = Upload files to Open Arena Chain | [false] = Download only, no upload'
-        required: true
-        default: true
-        type: boolean
-      suite_range:
-        description: 'Custom range: [empty] = Use default (1410044-1410100, 57 suites) | [start-end] = e.g. "1410044-1410050" for testing (7 suites)'
-        required: false
-        type: string
       tr_bearer_token:
-        description: 'Bearer token: [empty] = Use repository secret | [token] = Override with your token from Open Arena Chain settings'
-        required: true
-        type: string
-      tr_workspace_id:
-        description: 'Workspace ID: [empty] = Use repository secret | [UUID] = Override with workspace ID from Open Arena Chain URL'
+        description: 'TR Bearer Token (required for upload to Open Arena Chain)'
         required: false
-        type: string
-      delete_existing_files:
-        description: 'Workspace cleanup: [true] = ⚠️ DELETE all existing files before upload | [false] = Keep existing files, add new ones'
-        required: true
-        default: false
-        type: boolean
-      upload_timeout:
-        description: 'Upload timeout: [empty] = 300 seconds (5 min) | [number] = Custom seconds e.g. "600" for large files (10 min)'
-        required: false
-        default: '300'
         type: string
  
   push:
@@ -45,9 +14,10 @@ on:
       - 'config.py'
       - 'test_case_downloader.py'
       - 'open_arena_chain_uploader.py'
+      - 'automated_uploader.py'
 
 jobs:
-  download-and-upload:
+  test-case-workflow:
     runs-on: windows-latest
     
     env:
@@ -65,31 +35,15 @@ jobs:
         python-version: '3.11'
         cache: 'pip'
 
-    - name: Display workflow inputs
+    - name: Display workflow configuration
       run: |
-        Write-Host "🎯 Workflow Configuration:"
-        Write-Host "=========================="
-        Write-Host "Export Mode: ${{ github.event.inputs.mode || 'essential' }}"
-        Write-Host "Upload to Arena: ${{ github.event.inputs.upload_to_arena || 'true' }}"
-        Write-Host "Suite Range: ${{ github.event.inputs.suite_range || 'default (1410044-1410100)' }}"
-        Write-Host "Delete Existing Files: ${{ github.event.inputs.delete_existing_files || 'false' }}"
-        Write-Host "Upload Timeout: ${{ github.event.inputs.upload_timeout || '300' }} seconds"
-        
-        # Show token status without revealing values
-        $hasBearerToken = '${{ github.event.inputs.tr_bearer_token }}' -ne ''
-        $hasWorkspaceId = '${{ github.event.inputs.tr_workspace_id }}' -ne ''
-        
-        if ($hasBearerToken) {
-          Write-Host "Bearer Token: Provided via input"
-        } else {
-          Write-Host "Bearer Token: Using repository secret"
-        }
-        
-        if ($hasWorkspaceId) {
-          Write-Host "Workspace ID: Provided via input"
-        } else {
-          Write-Host "Workspace ID: Using repository secret"
-        }
+        Write-Host "🎯 Complete Test Case Workflow"
+        Write-Host "=============================="
+        Write-Host "This workflow will:"
+        Write-Host "📋 Download test cases (essential mode - 4 columns)"
+        Write-Host "📤 Upload all files to Open Arena Chain"
+        Write-Host "�️ Delete existing files before upload"
+        Write-Host "⚡ Use optimized upload strategy"
         Write-Host ""
 
     - name: Install dependencies
@@ -109,33 +63,34 @@ jobs:
         AZURE_DEVOPS_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
         AZURE_DEVOPS_DEFAULT_PROJECT: ${{ secrets.AZURE_DEVOPS_DEFAULT_PROJECT }}
         TR_BEARER_TOKEN: ${{ github.event.inputs.tr_bearer_token || secrets.TR_BEARER_TOKEN }}
-        TR_WORKSPACE_ID: ${{ github.event.inputs.tr_workspace_id || secrets.TR_WORKSPACE_ID }}
-
-    - name: Download test cases (Essential Mode)
-      if: ${{ github.event.inputs.mode == 'essential' || github.event.inputs.mode == '' }}
+        TR_WORKSPACE_ID: ${{ secrets.TR_WORKSPACE_ID }}
+    - name: Run Complete Workflow (Download + Upload)
       run: |
         # Set UTF-8 encoding for Unicode support
         [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
         $env:PYTHONIOENCODING = "utf-8"
         
-        python test_case_downloader.py --essential --output separate
-      env:
-        AZURE_DEVOPS_ORG_URL: ${{ secrets.AZURE_DEVOPS_ORG_URL }}
-        AZURE_DEVOPS_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
-        AZURE_DEVOPS_DEFAULT_PROJECT: ${{ secrets.AZURE_DEVOPS_DEFAULT_PROJECT }}
-
-    - name: Download test cases (Full Mode)
-      if: ${{ github.event.inputs.mode == 'full' }}
-      run: |
-        # Set UTF-8 encoding for Unicode support
-        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-        $env:PYTHONIOENCODING = "utf-8"
+        Write-Host "🚀 Running Complete Workflow (Download + Upload)"
+        Write-Host "================================================="
+        Write-Host "This will:"
+        Write-Host "1. Download test cases (essential mode)"
+        Write-Host "2. Upload all files to Open Arena Chain"
+        Write-Host "3. Use default options (delete existing files, upload all)"
+        Write-Host ""
         
-        python test_case_downloader.py --full --output separate
+        # Step 1: Download test cases
+        Write-Host "📥 Step 1: Downloading test cases..."
+        python test_case_downloader.py --mode essential --output separate
+        
+        # Step 2: Upload using automated uploader
+        Write-Host "📤 Step 2: Uploading to Open Arena Chain..."
+        python automated_uploader.py
       env:
         AZURE_DEVOPS_ORG_URL: ${{ secrets.AZURE_DEVOPS_ORG_URL }}
         AZURE_DEVOPS_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
         AZURE_DEVOPS_DEFAULT_PROJECT: ${{ secrets.AZURE_DEVOPS_DEFAULT_PROJECT }}
+        TR_BEARER_TOKEN: ${{ github.event.inputs.tr_bearer_token || secrets.TR_BEARER_TOKEN }}
+        TR_WORKSPACE_ID: ${{ secrets.TR_WORKSPACE_ID }}
 
     - name: List downloaded files
       run: |
@@ -148,37 +103,11 @@ jobs:
         } else {
           Write-Host "❌ test_cases_by_suite directory not found"
         }
-
-    - name: Upload to Open Arena Chain
-      if: ${{ github.event.inputs.upload_to_arena == 'true' || github.event.inputs.upload_to_arena == '' }}
-      run: |
-        # Set UTF-8 encoding for Unicode support
-        [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-        $env:PYTHONIOENCODING = "utf-8"
-        
-        # Set upload parameters based on inputs
-        $deleteExisting = '${{ github.event.inputs.delete_existing_files }}' -eq 'true'
-        $timeout = '${{ github.event.inputs.upload_timeout }}'
-        if (-not $timeout) { $timeout = '300' }
-        
-        Write-Host "🔧 Upload Configuration:"
-        Write-Host "Delete existing files: $deleteExisting"
-        Write-Host "Timeout: $timeout seconds"
-        Write-Host ""
-        
-        # Run the uploader
-        python open_arena_chain_uploader.py
-      env:
-        TR_BEARER_TOKEN: ${{ github.event.inputs.tr_bearer_token || secrets.TR_BEARER_TOKEN }}
-        TR_WORKSPACE_ID: ${{ github.event.inputs.tr_workspace_id || secrets.TR_WORKSPACE_ID }}
-        DELETE_EXISTING_FILES: ${{ github.event.inputs.delete_existing_files }}
-        UPLOAD_TIMEOUT: ${{ github.event.inputs.upload_timeout || '300' }}
-
     - name: Archive test cases
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: test-cases-${{ github.event.inputs.mode || 'essential' }}-${{ github.run_number }}
+        name: test-cases-complete-workflow-${{ github.run_number }}
         path: |
           test_cases_by_suite/
           *.log
@@ -198,17 +127,14 @@ jobs:
     - name: Workflow summary
       if: always()
       run: |
-        Write-Host "🎯 Workflow Summary"
-        Write-Host "==================="
-        Write-Host "Mode: ${{ github.event.inputs.mode || 'essential' }}"
-        Write-Host "Upload to Arena: ${{ github.event.inputs.upload_to_arena || 'true' }}"
-        Write-Host "Suite Range: ${{ github.event.inputs.suite_range || 'default' }}"
-        Write-Host "Delete Existing Files: ${{ github.event.inputs.delete_existing_files || 'false' }}"
-        Write-Host "Upload Timeout: ${{ github.event.inputs.upload_timeout || '300' }}s"
+        Write-Host "🎯 Complete Workflow Summary"
+        Write-Host "============================"
+        Write-Host "Workflow: Complete Test Case Download + Upload"
         Write-Host "Run ID: ${{ github.run_id }}"
         Write-Host "Run Number: ${{ github.run_number }}"
         if (Test-Path "test_cases_by_suite") {
           $fileCount = (Get-ChildItem "test_cases_by_suite" -File).Count
           Write-Host "Files generated: $fileCount"
         }
-        Write-Host "Artifacts: test-cases-${{ github.event.inputs.mode || 'essential' }}-${{ github.run_number }}"
+        Write-Host "Artifacts: test-cases-complete-workflow-${{ github.run_number }}"
+        Write-Host "Result: Downloaded essential test case data and uploaded to Open Arena Chain"
